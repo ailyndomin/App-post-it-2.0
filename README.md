@@ -1,17 +1,36 @@
-Funcionalidad: al hacer click en el logo proncipal centrado arriba de la pantalla se abrira nuestro primer post it, el cual puede ser guardado.
-Una vez guardado, quedara en la carpeta, en la cual podremos abrir nuevamente nuestro post it para editar, para volver a guardarlo solo basta con presionar guardar(no presionar x o se eliminara).
+# 📝 App Post-It 2.0
 
-El post it tiene disitntos botones:
+Aplicación que permite crear, editar y guardar notas tipo Post-it de manera dinámica.
 
-+ : sirve para agregar otra nota.
-viñetas: sirve para agregar un punto al inicio de cada escrito.
-cambio de fondo: se puede elegir entre distintos fondos.
-guardar: sirve para guardar nuestro post it en la carpeta
-x: para cerrar el post it que no necesitaremos.
+## 🚀 Funcionalidades
 
-Por otro lado tenemos la carpeta en la cual se apreciaran los post it guardados, esta cuenta con dos botones:
+- Crear nuevas notas haciendo clic en el logo principal.
+- Editar notas guardadas.
+- Agregar viñetas al contenido.
+- Cambiar el fondo del Post-it entre distintos diseños.
+- Guardar notas en una carpeta interna.
+- Abrir notas guardadas.
+- Eliminar notas que ya no se necesiten.
 
-abrir: permite acceder al post it guardado.
-eliminar: se elimina el post it guardado.
+## 📂 Gestión de notas
 
-Aún  faltan mejoras, este es un proyecto en constante remodelación para hacerlo mas dinamico y accesible
+La aplicación cuenta con una carpeta donde se almacenan los Post-it guardados.
+
+Opciones disponibles:
+
+- **Abrir** → Permite acceder al Post-it guardado.
+- **Eliminar** → Borra el Post-it seleccionado.
+
+## ⚙️ Estado del proyecto
+
+El proyecto se encuentra en constante mejora para hacerlo más dinámico y accesible.
+
+## 🛠️ Tecnologías utilizadas
+
+(Aquí puedes poner las que usaste, por ejemplo:)
+
+- HTML
+- CSS
+- javascript
+
+Desarrollado por **Ailyn Quinteros Dominguez**
