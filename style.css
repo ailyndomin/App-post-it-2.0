@@ -161,6 +161,8 @@ body::before{
     border-right: none;
     border-left: none;
 
+     background-color:rgb(184, 226, 243);
+
 }
 
 .title{
@@ -175,7 +177,6 @@ body::before{
     background-color:rgb(184, 226, 243);
     font-weight: bolder;
     font-size: larger;
-    padding-right: 1px;
     
 }
 
@@ -327,6 +328,7 @@ body::before{
 .eliminar-guardado:hover{
     background: #bce9f1;
 }
+
 
 
 
