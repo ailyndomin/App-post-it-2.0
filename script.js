@@ -237,6 +237,104 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // =========================
+  // SELECTOR DE FONDOS (SIN TOCAR CSS/HTML)
+  // =========================
+  function cerrarSelectorFondos(postit) {
+    const sel = postit.querySelector(".selector-fondos-inline");
+    if (sel) sel.remove();
+  }
+
+  function abrirSelectorFondos(postit) {
+    // Toggle: si ya está abierto, lo cierra
+    const existente = postit.querySelector(".selector-fondos-inline");
+    if (existente) {
+      existente.remove();
+      return;
+    }
+
+    // Cierra cualquier selector abierto en otros post-its
+    document.querySelectorAll(".selector-fondos-inline").forEach(el => el.remove());
+
+    const selector = document.createElement("div");
+    selector.className = "selector-fondos-inline";
+
+    // Estilos inline para NO depender de CSS
+    Object.assign(selector.style, {
+      position: "absolute",
+      top: "38px",          // debajo del menú superior
+      right: "6px",
+      width: "170px",
+      maxHeight: "220px",
+      overflow: "auto",
+      background: "white",
+      border: "2px solid black",
+      borderRadius: "10px",
+      padding: "8px",
+      display: "flex",
+      flexWrap: "wrap",
+      gap: "6px",
+      zIndex: "99999",
+      boxShadow: "0 10px 25px rgba(0,0,0,.25)"
+    });
+
+    // Para que el absolute se posicione respecto al post-it
+    // (si ya tienes position absolute/relative no molesta)
+    if (!postit.style.position) postit.style.position = "relative";
+
+    const actualSrc = postit.querySelector(".imagenes-fondos")?.getAttribute("src") || "";
+
+    FONDOS.forEach((src, index) => {
+      const thumb = document.createElement("img");
+      thumb.src = src;
+      thumb.alt = "fondo";
+      Object.assign(thumb.style, {
+        width: "48px",
+        height: "48px",
+        objectFit: "cover",
+        cursor: "pointer",
+        borderRadius: "8px",
+        border: (src === actualSrc) ? "2px solid #000" : "2px solid transparent"
+      });
+
+      thumb.addEventListener("mouseenter", () => {
+        thumb.style.border = "2px solid #f5a3a3";
+      });
+      thumb.addEventListener("mouseleave", () => {
+        thumb.style.border = (src === actualSrc) ? "2px solid #000" : "2px solid transparent";
+      });
+
+      thumb.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+
+        const imgPrincipal = postit.querySelector(".imagenes-fondos");
+        if (!imgPrincipal) return;
+
+        imgPrincipal.setAttribute("src", src);
+        postit.dataset.fondoIndex = String(index);
+
+        selector.remove();
+        guardarDebounced();
+      });
+
+      selector.appendChild(thumb);
+    });
+
+    postit.appendChild(selector);
+  }
+
+  // Cerrar selector al hacer click fuera
+  document.addEventListener("click", (e) => {
+    const abierto = document.querySelector(".selector-fondos-inline");
+    if (!abierto) return;
+
+    // Si haces click dentro del selector o en el botón cambio-fondo, no cierres aquí
+    if (e.target.closest(".selector-fondos-inline")) return;
+    if (e.target.closest(".cambio-fondo")) return;
+
+    abierto.remove();
+  });
+
+  // =========================
   // CLICK BOTONES (delegación)
   // =========================
   contenedor.addEventListener("click", (e) => {
@@ -267,6 +365,9 @@ document.addEventListener("DOMContentLoaded", () => {
       data.unshift({ ...snap, fecha: Date.now() });
       saveJSON(ARCHIVE_KEY, data);
 
+      // Si había selector abierto, ciérralo
+      cerrarSelectorFondos(postit);
+
       postit.remove();
       guardarDebounced();
 
@@ -280,23 +381,21 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // 🎨 cambiar fondo
+    // 🎨 cambiar fondo (AHORA ABRE SELECTOR)
     if (btnFondo) {
-      const img = postit.querySelector(".imagenes-fondos");
-      if (!img) return;
-
-      let i = Number(postit.dataset.fondoIndex || 0);
-      i = (i + 1) % FONDOS.length;
-      postit.dataset.fondoIndex = String(i);
-      img.setAttribute("src", FONDOS[i]);
-
-      guardarDebounced();
+      // evita que el click global cierre inmediatamente
+      e.stopPropagation();
+      abrirSelectorFondos(postit);
       return;
     }
 
     // ❌ cerrar
     if (btnCerrar) {
       e.preventDefault();
+
+      // Si había selector abierto, ciérralo
+      cerrarSelectorFondos(postit);
+
       postit.classList.add("closing");
 
       const borrar = () => {
@@ -395,6 +494,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.target.closest("button") || e.target.closest("textarea")) return;
     if (postit.dataset.resizing === "1") return;
 
+    // Si haces mousedown en el selector, no arrastres
+    if (e.target.closest(".selector-fondos-inline")) return;
+
+    // Si hay selector abierto, lo cierro al empezar a mover
+    cerrarSelectorFondos(postit);
+
     arrastrando = postit;
     arrastrando.style.position = "absolute";
     arrastrando.style.zIndex = String(Date.now());
@@ -436,6 +541,12 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    // Si estás encima del selector, no cambies cursor de resize
+    if (e.target.closest(".selector-fondos-inline")) {
+      document.body.style.cursor = "";
+      return;
+    }
+
     if (e.target.closest("button") || e.target.closest("textarea")) {
       document.body.style.cursor = "";
       return;
@@ -455,6 +566,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const postit = e.target.closest(".post-it");
     if (!postit) return;
 
+    // Si haces mousedown en el selector, no redimensiones
+    if (e.target.closest(".selector-fondos-inline")) return;
+
     if (e.target.closest("button") || e.target.closest("textarea")) return;
 
     const rect = postit.getBoundingClientRect();
@@ -463,6 +577,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!cercaDerecha && !cercaAbajo) return;
 
     e.preventDefault();
+
+    // Si hay selector abierto, lo cierro al empezar a redimensionar
+    cerrarSelectorFondos(postit);
 
     resizePostit = postit;
     if (cercaDerecha && cercaAbajo) resizeModo = "corner";
