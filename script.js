@@ -629,3 +629,4 @@ document.addEventListener("DOMContentLoaded", () => {
   // guarda al salir
   window.addEventListener("beforeunload", () => guardarActivos());
 });
+
