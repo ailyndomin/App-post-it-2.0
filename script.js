@@ -628,5 +628,117 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // guarda al salir
   window.addEventListener("beforeunload", () => guardarActivos());
+
+  // =========================
+  // ✨ CHISPAS EN TACHUELAS (SIN TOCAR TU HTML/CSS)
+  // =========================
+  (() => {
+    const sparkCanvas = document.createElement("canvas");
+    const sparkCtx = sparkCanvas.getContext("2d");
+
+    Object.assign(sparkCanvas.style, {
+      position: "fixed",
+      left: "0",
+      top: "0",
+      width: "100vw",
+      height: "100vh",
+      pointerEvents: "none",
+      zIndex: "999999"
+    });
+
+    document.body.appendChild(sparkCanvas);
+
+    let sparkParticles = [];
+    let sparkRaf = null;
+
+    function sparkResize() {
+      const dpr = window.devicePixelRatio || 1;
+      sparkCanvas.width = Math.max(1, Math.round(window.innerWidth * dpr));
+      sparkCanvas.height = Math.max(1, Math.round(window.innerHeight * dpr));
+      sparkCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    window.addEventListener("resize", sparkResize, { passive: true });
+    sparkResize();
+
+    function sparkSpawn(x, y) {
+      const count = 28;
+      for (let i = 0; i < count; i++) {
+        const ang = Math.random() * Math.PI * 2;
+        const spd = 2 + Math.random() * 5.5;
+
+        sparkParticles.push({
+          x, y,
+          vx: Math.cos(ang) * spd,
+          vy: Math.sin(ang) * spd,
+          life: 40 + Math.random() * 25,
+          maxLife: 65,
+          size: 1.4 + Math.random() * 2.6,
+          hue: 35 + Math.random() * 25
+        });
+      }
+      if (!sparkRaf) sparkLoop();
+    }
+
+    function sparkLoop() {
+      sparkRaf = requestAnimationFrame(sparkLoop);
+
+      sparkCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      sparkParticles = sparkParticles.filter(p => p.life > 0);
+
+      for (const p of sparkParticles) {
+        p.life -= 1;
+        p.vy += 0.08;
+        p.vx *= 0.985;
+        p.vy *= 0.985;
+
+        p.x += p.vx;
+        p.y += p.vy;
+
+        const t = p.life / p.maxLife;
+        const alpha = Math.max(0, Math.min(1, t));
+
+        sparkCtx.beginPath();
+        sparkCtx.fillStyle = `hsla(${p.hue}, 100%, 55%, ${alpha})`;
+        sparkCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        sparkCtx.fill();
+
+        sparkCtx.strokeStyle = `hsla(${p.hue}, 100%, 70%, ${alpha})`;
+        sparkCtx.lineWidth = 1;
+        sparkCtx.beginPath();
+        sparkCtx.moveTo(p.x, p.y);
+        sparkCtx.lineTo(p.x - p.vx * 1.6, p.y - p.vy * 1.6);
+        sparkCtx.stroke();
+      }
+
+      if (sparkParticles.length === 0) {
+        cancelAnimationFrame(sparkRaf);
+        sparkRaf = null;
+        sparkCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      }
+    }
+
+    const sparkTargets = ["tachuela-izquierda", "tachuela-derecha"]
+      .map(id => document.getElementById(id))
+      .filter(Boolean);
+
+    if (!sparkTargets.length) return;
+
+    sparkTargets.forEach(img => {
+      if (!img.style.cursor) img.style.cursor = "pointer";
+
+      // Chispas desde donde haces click
+      img.addEventListener("click", (e) => {
+        sparkSpawn(e.clientX, e.clientY);
+      }, { passive: true });
+
+      // Si prefieres desde el CENTRO de la tachuela, reemplaza el listener por este:
+      // img.addEventListener("click", () => {
+      //   const r = img.getBoundingClientRect();
+      //   sparkSpawn(r.left + r.width / 2, r.top + r.height / 2);
+      // }, { passive: true });
+    });
+  })();
 });
+
 
